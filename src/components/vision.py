@@ -5,6 +5,7 @@ Created on Jan 7, 2017
 '''
 import requests
 from common.contour import Contour
+from configparser import ConfigParser
 
 class Vision:
     '''
@@ -23,6 +24,16 @@ class Vision:
         self.number_of_targets = 0
         self.hook_positionX = 0
         self.hook_positionY = 0
+        
+        self.read_config()
+        
+    def read_config(self):
+        config = ConfigParser()
+        config.read('visionconfig.cfg')
+        if 'hostname' in config and 'port' in config:
+            self.DRIVER_STATION_IP = config['hostname'] + ':' + config['port']
+        else:
+            self.DRIVER_STATION_IP = "10.21.86.10:5801"
         
     def get_contours_from_json(self, json):
         contours = []
@@ -44,6 +55,8 @@ class Vision:
     def find_hook(self, contours):
         if self.number_of_targets < 2:
             self.detects_hook = False
+            self.hook_positionX = 0
+            self.hook_positionY = 0
             return
         else:
             #Hook should be between those 2 vision targets
