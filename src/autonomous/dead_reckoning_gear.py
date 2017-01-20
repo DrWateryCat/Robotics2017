@@ -4,7 +4,7 @@ Created on Jan 8, 2017
 @author: Kenny
 '''
 
-from robotpy_ext.autonomous import *
+from robotpy_ext.autonomous import StatefulAutonomous, timed_state
 
 class Dead_Reckoning_Gear(StatefulAutonomous):
     MODE_NAME = "Dead Reckoning Gear Scoring"

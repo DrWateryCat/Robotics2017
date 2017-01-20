@@ -4,7 +4,6 @@ Created on Jan 12, 2017
 @author: Kenny
 '''
 
-from ctre import cantalon
 import wpilib
 
 class Drive:
@@ -18,7 +17,24 @@ class Drive:
         self.right = 0
     
     def tankdrive(self, left, right):
-        pass
+        self.left = left
+        self.right = right
+    
+    def arcade_drive(self, x, y):
+        if y > 0.0:
+            if x > 0.0:
+                self.left = y - x
+                self.right = max(y, x)
+            else:
+                self.left = max(y, -x)
+                self.right = x + y
+        else:
+            if x > 0.0:
+                self.left = -max(-y, x)
+                self.right = y + x
+            else:
+                self.left = y - x
+                self.right = -max(-y, -x)
     
     def execute(self):
-        pass
+        self.drive_controller.tankDrive(self.left, self.right)
