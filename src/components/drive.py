@@ -5,12 +5,17 @@ Created on Jan 12, 2017
 '''
 
 import wpilib
+import ctre
 
 class Drive:
     '''
     classdocs
     '''
-    drive_controller = wpilib.RobotDrive
+    left_talon0 = ctre.CANTalon
+    left_talon1 = ctre.CANTalon
+    
+    right_talon0 = ctre.CANTalon
+    right_talon1 = ctre.CANTalon
     
     def __init__(self):
         self.left = 0
@@ -37,4 +42,5 @@ class Drive:
                 self.right = -max(-y, -x)
     
     def execute(self):
-        self.drive_controller.tankDrive(self.left, self.right)
+        self.left_talon0.set(self.left)
+        self.right_talon0.set(self.right)
