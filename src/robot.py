@@ -39,7 +39,17 @@ class MyRobot(magicbot.MagicRobot):
         
         self.buttons = unifiedjoystick.UnifiedJoystick([self.left_joystick, self.right_joystick])
         
+    def autonomous(self):
+        SmartDashboard.putBoolean("timeRunning", True)
+        magicbot.MagicRobot.autonomous(self)
+        
     def teleopPeriodic(self):
-        SmartDashboard.putNumber("Heading", self.navx.getFusedHeading())
+        SmartDashboard.putNumber("heading", self.navx.getFusedHeading())
+        self.drive.tankdrive(self.left_joystick.getRawAxis(1), self.right_joystick.getRawAxis(1))
+        
+    def disabledInit(self):
+        SmartDashboard.putBoolean("timeRunning", False)
+        magicbot.MagicRobot.disabledInit(self)
+        
 if __name__ == "__main__":
     wpilib.run(MyRobot)
