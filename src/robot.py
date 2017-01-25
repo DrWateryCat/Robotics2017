@@ -6,7 +6,8 @@ from components import drive, climber
 from robotpy_ext.common_drivers.navx.ahrs import AHRS
 from wpilib.smartdashboard import SmartDashboard
 import ctre
-from common import unifiedjoystick
+from common import unifiedjoystick, encoder
+from wpilib.driverstation import DriverStation
 
 class MyRobot(magicbot.MagicRobot):
     #vision = vision.Vision
@@ -33,6 +34,10 @@ class MyRobot(magicbot.MagicRobot):
         #Climber
         self.climber_motor = wpilib.Spark(0)
         
+        #Sensors
+        self.left_enc = encoder.Encoder(self.left_talon0)
+        self.right_enc = encoder.Encoder(self.right_talon0, True)
+        
         #Controls
         self.left_joystick = wpilib.Joystick(0)
         self.right_joystick = wpilib.Joystick(1)
@@ -40,15 +45,16 @@ class MyRobot(magicbot.MagicRobot):
         self.buttons = unifiedjoystick.UnifiedJoystick([self.left_joystick, self.right_joystick])
         
     def autonomous(self):
-        SmartDashboard.putBoolean("timeRunning", True)
         magicbot.MagicRobot.autonomous(self)
         
     def teleopPeriodic(self):
+        SmartDashboard.putBoolean("time_running", True)
+        SmartDashboard.putNumber("time_remaining", DriverStation.getInstance().getMatchTime() - 15)
         SmartDashboard.putNumber("heading", self.navx.getFusedHeading())
         self.drive.tankdrive(self.left_joystick.getRawAxis(1), self.right_joystick.getRawAxis(1))
         
     def disabledInit(self):
-        SmartDashboard.putBoolean("timeRunning", False)
+        SmartDashboard.putBoolean("time_running", False)
         magicbot.MagicRobot.disabledInit(self)
         
 if __name__ == "__main__":

@@ -98,11 +98,13 @@ class Drive:
         self.iErr = 0
         return True
     
+    
+    
     def _get_inches_to_ticks(self, inches):
         return ((self.GEAR_RATIO * self.TICKS_PER_REV * inches) / (math.pi*self.WHEEL_DIAMETER))
     
     def execute(self):
-        self.left_talon0.set(self.left)
+        self.left_talon0.set(-self.left)
         self.right_talon0.set(self.right)
         
         #Reset left and right to 0

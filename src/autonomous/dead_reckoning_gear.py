@@ -4,19 +4,24 @@ Created on Jan 8, 2017
 @author: Kenny
 '''
 
-from robotpy_ext.autonomous import StatefulAutonomous, timed_state, state
+from robotpy_ext.autonomous import StatefulAutonomous, state
+from components import drive
 import wpilib
 
 class Dead_Reckoning_Gear(StatefulAutonomous):
     MODE_NAME = "Dead Reckoning Gear Scoring"
+    
+    drive = drive.Drive
 
     def initialize(self):
         self.driver_station = wpilib.DriverStation.getInstance()
         self.alliance_location = self.driver_station.getLocation()
         
+        self.register_sd_var('drive_forward_inches', 60)
+        
     @state(first=True)
     def drive_five_feet(self):
-        if self.drive.drive_distance(60):
+        if self.drive.drive_distance(self.drive_forward_inches):
             if self.alliance_location == 1:
                 self.next_state("turn_right")
             elif self.alliance_location == 2:
@@ -26,15 +31,17 @@ class Dead_Reckoning_Gear(StatefulAutonomous):
     
     @state
     def turn_left(self):
-        pass
+        if self.drive.turn_to_angle(45):
+            self.next_state('end')
     
     @state
     def turn_right(self):
-        pass
+        if self.drive.turn_to_angle(315):
+            self.next_state('end')
     
     @state
     def middle(self):
-        pass
+        self.next_state('end')
     
     @state
     def end(self):
