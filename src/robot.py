@@ -58,7 +58,6 @@ class MyRobot(magicbot.MagicRobot):
     def update_sd(self):
         SmartDashboard.putBoolean("time_running", True)
         SmartDashboard.putNumber("time_remaining", DriverStation.getInstance().getMatchTime() - 15)
-        SmartDashboard.putNumber("heading", self.drive.get_gyro_angle()) 
         
 if __name__ == "__main__":
     wpilib.run(MyRobot)
