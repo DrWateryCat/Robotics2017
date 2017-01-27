@@ -48,14 +48,17 @@ class MyRobot(magicbot.MagicRobot):
         magicbot.MagicRobot.autonomous(self)
         
     def teleopPeriodic(self):
-        SmartDashboard.putBoolean("time_running", True)
-        SmartDashboard.putNumber("time_remaining", DriverStation.getInstance().getMatchTime() - 15)
-        SmartDashboard.putNumber("heading", self.navx.getFusedHeading())
+        self.update_sd()
         self.drive.tankdrive(self.left_joystick.getRawAxis(1), self.right_joystick.getRawAxis(1))
         
     def disabledInit(self):
         SmartDashboard.putBoolean("time_running", False)
         magicbot.MagicRobot.disabledInit(self)
+
+    def update_sd(self):
+        SmartDashboard.putBoolean("time_running", True)
+        SmartDashboard.putNumber("time_remaining", DriverStation.getInstance().getMatchTime() - 15)
+        SmartDashboard.putNumber("heading", self.drive.get_gyro_angle()) 
         
 if __name__ == "__main__":
     wpilib.run(MyRobot)

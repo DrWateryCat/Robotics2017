@@ -8,7 +8,9 @@ import ctre
 import math
 from robotpy_ext.common_drivers import navx
 from common import encoder
+from wpilib.smartdashboard import SmartDashboard
 from networktables.util import ntproperty
+from networktables import NetworkTable
 
 class Drive:
     '''
@@ -36,11 +38,13 @@ class Drive:
         self.right = 0
         
         self.iErr = 0
+
+        self.sd = NetworkTable.getTable("/SmartDashboard")
         
         #Turn to angle PI values
-        self.turning_P = ntproperty("/SmartDashboard/TurnToAngle/P", 0.03)
-        self.turning_I = ntproperty("/SmartDashboard/TurnToAngle/I", 0.0001)
-        self.turning_limit = ntproperty("/SmartDashboard/TurnToAngle/Turning Limit", 180)
+        self.turning_P = self.sd.getAutoUpdateValue("TurnToAngle/P", 0.03)
+        self.turning_I = self.sd.getAutoUpdateValue("TurnToAngle/I", 0.0001)
+        self.turning_limit = self.sd.getAutoUpdateValue("TurnToAngle/Turning Speed", 0.37)
     
     def tankdrive(self, left, right):
         self.left = left
@@ -91,8 +95,8 @@ class Drive:
         offset = angle - self.get_gyro_angle()
         if abs(offset) > 3:
             self.iErr += offset
-            x = offset * self.turning_P * self.turning_I * self.iErr
-            x = max(min(self.turning_limit, x), -self.turning_limit)
+            x = offset * self.turning_P.value * self.turning_I.value * self.iErr
+            x = max(min(self.turning_limit.value, x), -self.turning_limit.value)
             self.arcade_drive(x, 0)
             return False
         self.iErr = 0
@@ -110,3 +114,6 @@ class Drive:
         #Reset left and right to 0
         self.left = 0
         self.right = 0
+
+        #Update SD
+        SmartDashboard.putNumber("heading", self.navx.getYaw())

@@ -18,10 +18,12 @@ class Dead_Reckoning_Gear(StatefulAutonomous):
         self.alliance_location = self.driver_station.getLocation()
         
         self.register_sd_var('drive_forward_inches', 60)
+        self.register_sd_var('turn_left_angle', 315)
+        self.register_sd_var('turn_right_angle', 45)
         
     @state(first=True)
-    def drive_five_feet(self):
-        if self.drive.drive_distance(self.drive_forward_inches):
+    def drive_five_feet(self, state_tm):
+        if self.drive.drive_distance(self.drive_forward_inches) or state_tm > 5:
             if self.alliance_location == 1:
                 self.next_state("turn_right")
             elif self.alliance_location == 2:
@@ -31,12 +33,12 @@ class Dead_Reckoning_Gear(StatefulAutonomous):
     
     @state
     def turn_left(self):
-        if self.drive.turn_to_angle(45):
+        if self.drive.turn_to_angle(self.turn_left_angle):
             self.next_state('end')
     
     @state
     def turn_right(self):
-        if self.drive.turn_to_angle(315):
+        if self.drive.turn_to_angle(self.turn_right_angle):
             self.next_state('end')
     
     @state
@@ -45,4 +47,4 @@ class Dead_Reckoning_Gear(StatefulAutonomous):
     
     @state
     def end(self):
-        self.drive.arcadeDrive(0, 0)
+        self.drive.arcade_drive(0, 0)
