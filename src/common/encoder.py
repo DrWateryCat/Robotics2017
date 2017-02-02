@@ -13,7 +13,7 @@ class Encoder(object):
         self.motor = motor
         self.mod = 1
         if reverse:
-            self.mod = -1
+            self.motor.reverseSensor(1)
             
         self.initial = self.mod * self.motor.getEncPosition()
         

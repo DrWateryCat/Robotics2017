@@ -2,17 +2,18 @@
 
 import wpilib
 import magicbot
-from components import drive, climber
+from components import drive, climber, sensor
 from robotpy_ext.common_drivers.navx.ahrs import AHRS
+from robotpy_ext.common_drivers import xl_max_sonar_ez
 from wpilib.smartdashboard import SmartDashboard
 import ctre
 from common import unifiedjoystick, encoder
 from wpilib.driverstation import DriverStation
 
 class MyRobot(magicbot.MagicRobot):
-    #vision = vision.Vision
     drive = drive.Drive
     climber = climber.Climber
+    sensors = sensor.Sensor
     
     def createObjects(self):
         #navx
@@ -25,18 +26,14 @@ class MyRobot(magicbot.MagicRobot):
         self.right_talon0 = ctre.CANTalon(2)
         self.right_talon1 = ctre.CANTalon(3)
         
-        self.left_talon1.setControlMode(ctre.CANTalon.ControlMode.Follower)
-        self.left_talon1.set(self.left_talon0.getDeviceID())
-        
-        self.right_talon1.setControlMode(ctre.CANTalon.ControlMode.Follower)
-        self.right_talon1.set(self.right_talon0.getDeviceID())
-        
         #Climber
         self.climber_motor = wpilib.Spark(0)
         
         #Sensors
         self.left_enc = encoder.Encoder(self.left_talon0)
         self.right_enc = encoder.Encoder(self.right_talon0, True)
+        
+        self.sonar = xl_max_sonar_ez.MaxSonarEZAnalog(0)
         
         #Controls
         self.left_joystick = wpilib.Joystick(0)
@@ -49,15 +46,18 @@ class MyRobot(magicbot.MagicRobot):
         
     def teleopPeriodic(self):
         self.update_sd()
-        self.drive.tankdrive(self.left_joystick.getRawAxis(1), self.right_joystick.getRawAxis(1))
+        self.drive.tankdrive(self.left_joystick.getRawAxis(1) * 0.75, self.right_joystick.getRawAxis(1) * 0.75)
         
     def disabledInit(self):
         SmartDashboard.putBoolean("time_running", False)
+        self.drive.reset_encoders()
         magicbot.MagicRobot.disabledInit(self)
 
     def update_sd(self):
         SmartDashboard.putBoolean("time_running", True)
         SmartDashboard.putNumber("time_remaining", DriverStation.getInstance().getMatchTime() - 15)
+        
+        
         
 if __name__ == "__main__":
     wpilib.run(MyRobot)

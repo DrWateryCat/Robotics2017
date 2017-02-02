@@ -11,6 +11,7 @@ from common import encoder
 from wpilib.smartdashboard import SmartDashboard
 from networktables.util import ntproperty
 from networktables import NetworkTable
+from ctre.cantalon import CANTalon
 
 class Drive:
     '''
@@ -32,6 +33,7 @@ class Drive:
     TICKS_PER_REV = 1440
     WHEEL_DIAMETER = 6
     GEAR_RATIO = 10.71
+    INCHES_PER_REVOLUTION = 18.84
     
     def __init__(self):
         self.left = 0
@@ -45,6 +47,25 @@ class Drive:
         self.turning_P = self.sd.getAutoUpdateValue("TurnToAngle/P", 0.03)
         self.turning_I = self.sd.getAutoUpdateValue("TurnToAngle/I", 0.0001)
         self.turning_limit = self.sd.getAutoUpdateValue("TurnToAngle/Turning Speed", 0.37)
+        
+        #Set up talon slaves
+        self.left_talon1.setControlMode(ctre.CANTalon.ControlMode.Follower)
+        self.left_talon1.set(self.left_talon0.getDeviceID())
+        
+        self.right_talon1.setControlMode(ctre.CANTalon.ControlMode.Follower)
+        self.right_talon1.set(self.right_talon0.getDeviceID())
+        
+        #Set talon feedback device
+        self.left_talon0.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder)
+        self.right_talon0.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder)
+        
+        #Set the Ticks per revolution in the talons
+        self.left_talon0.configEncoderCodesPerRev(self.TICKS_PER_REV)
+        self.right_talon0.configEncoderCodesPerRev(self.TICKS_PER_REV)
+        
+        #self.left_talon0.setProfile(0)
+        #self.right_talon0.setProfile(0)
+        
     
     def tankdrive(self, left, right):
         self.left = left
@@ -76,11 +97,14 @@ class Drive:
         self.left_enc.zero()
         self.right_enc.zero()
                 
-    def drive_distance(self, inches, speed=0.5):
-        return self.drive_by_ticks(self._get_inches_to_ticks(inches), speed)
+    def drive_distance(self, inches, speed=0.25, initial_call=False):
+        return self.drive_by_ticks(self._get_inches_to_ticks(inches), speed, initial_call)
     
-    def drive_by_ticks(self, ticks, speed=0.5):
+    def drive_by_ticks(self, ticks, speed=0.5, initial_call=False):
+        if initial_call:
+            self.reset_encoders()
         offset = ticks - self.left_enc.get()
+        SmartDashboard.putNumber("Ticks offset", offset)
         
         if abs(offset) > 1000:
             y = offset * 0.0001
@@ -102,10 +126,16 @@ class Drive:
         self.iErr = 0
         return True
     
-    
+    def get_compass(self):
+        return self.navx.getCompassHeading()
     
     def _get_inches_to_ticks(self, inches):
-        return ((self.GEAR_RATIO * self.TICKS_PER_REV * inches) / (math.pi*self.WHEEL_DIAMETER))
+        return inches * (self.INCHES_PER_REVOLUTION * self.TICKS_PER_REV)
+    
+    def _update_sd(self):
+        SmartDashboard.putNumber("Left Encoder Position", self.left_talon0.getSpeed())
+        SmartDashboard.putNumber("Right Encoder Position", self.right_talon0.getSpeed())
+        SmartDashboard.putNumber("heading", self.get_gyro_angle())
     
     def execute(self):
         self.left_talon0.set(-self.left)
@@ -116,4 +146,4 @@ class Drive:
         self.right = 0
 
         #Update SD
-        SmartDashboard.putNumber("heading", self.navx.getYaw())
+        self._update_sd()
