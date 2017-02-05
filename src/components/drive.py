@@ -5,11 +5,9 @@ Created on Jan 12, 2017
 '''
 
 import ctre
-import math
 from robotpy_ext.common_drivers import navx
 from common import encoder
 from wpilib.smartdashboard import SmartDashboard
-from networktables.util import ntproperty
 from networktables import NetworkTable
 from ctre.cantalon import CANTalon
 
@@ -39,39 +37,27 @@ class Drive:
         self.left = 0
         self.right = 0
         
-        self.iErr = 0
+        self.pid_angle = 0
 
         self.sd = NetworkTable.getTable("/SmartDashboard")
         
         #Turn to angle PI values
         self.turning_P = self.sd.getAutoUpdateValue("TurnToAngle/P", 0.03)
-        self.turning_I = self.sd.getAutoUpdateValue("TurnToAngle/I", 0.0001)
+        #self.turning_I = self.sd.getAutoUpdateValue("TurnToAngle/I", 0.0001)
+        #self.turning_D = self.sd.getAutoUpdateValue("TurnToAngle/D", 0.001)
         self.turning_limit = self.sd.getAutoUpdateValue("TurnToAngle/Turning Speed", 0.37)
         
-        #Set up talon slaves
-        self.left_talon1.setControlMode(ctre.CANTalon.ControlMode.Follower)
-        self.left_talon1.set(self.left_talon0.getDeviceID())
-        
-        self.right_talon1.setControlMode(ctre.CANTalon.ControlMode.Follower)
-        self.right_talon1.set(self.right_talon0.getDeviceID())
-        
-        #Set talon feedback device
-        self.left_talon0.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder)
-        self.right_talon0.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder)
-        
-        #Set the Ticks per revolution in the talons
-        self.left_talon0.configEncoderCodesPerRev(self.TICKS_PER_REV)
-        self.right_talon0.configEncoderCodesPerRev(self.TICKS_PER_REV)
-        
-        #self.left_talon0.setProfile(0)
-        #self.right_talon0.setProfile(0)
-        
+        self.drive_constant = self.sd.getAutoUpdateValue("Drive/Drive Constant", 0.0001)
+        self.drive_multiplier = self.sd.getAutoUpdateValue("Drive/Drive Multiplier", 0.75)
     
     def tankdrive(self, left, right):
         self.left = left
         self.right = right
+        
+        self._set_talon_to_throttle_mode()
     
     def arcade_drive(self, x, y):
+        self._set_talon_to_throttle_mode()
         if y > 0.0:
             if x > 0.0:
                 self.left = y - x
@@ -103,27 +89,21 @@ class Drive:
     def drive_by_ticks(self, ticks, speed=0.5, initial_call=False):
         if initial_call:
             self.reset_encoders()
+            
         offset = ticks - self.left_enc.get()
-        SmartDashboard.putNumber("Ticks offset", offset)
-        
-        if abs(offset) > 1000:
-            y = offset * 0.0001
-            y = max(min(speed, y), -speed)
-            self.arcade_drive(0, y)
+        if abs(offset) > 100:
+            self._set_talon_position(ticks)
             return False
         return True
     
     def turn_to_angle(self, angle, speed=0.5):
-        #Inline PI controller
-        
         offset = angle - self.get_gyro_angle()
+        
         if abs(offset) > 3:
-            self.iErr += offset
-            x = offset * self.turning_P.value * self.turning_I.value * self.iErr
-            x = max(min(self.turning_limit.value, x), -self.turning_limit.value)
-            self.arcade_drive(x, 0)
+            p = self.turning_P.value * offset
+            value = max(min(p, self.turning_limit.value), -self.turning_limit.value)
+            self.arcade_drive(value, 0)
             return False
-        self.iErr = 0
         return True
     
     def get_compass(self):
@@ -133,13 +113,26 @@ class Drive:
         return inches * (self.INCHES_PER_REVOLUTION * self.TICKS_PER_REV)
     
     def _update_sd(self):
-        SmartDashboard.putNumber("Left Encoder Position", self.left_talon0.getSpeed())
-        SmartDashboard.putNumber("Right Encoder Position", self.right_talon0.getSpeed())
+        SmartDashboard.putNumber("Left Encoder Position", self.left_talon0.getPosition())
+        SmartDashboard.putNumber("Right Encoder Position", self.right_talon0.getPosition())
         SmartDashboard.putNumber("heading", self.get_gyro_angle())
+        
+    def _set_talon_to_position_mode(self):
+        self.left_talon0.changeControlMode(CANTalon.ControlMode.Position)
+        self.right_talon0.changeControlMode(CANTalon.ControlMode.Position)
+        
+    def _set_talon_to_throttle_mode(self):
+        self.left_talon0.changeControlMode(CANTalon.ControlMode.PercentVbus)
+        self.right_talon0.changeControlMode(CANTalon.ControlMode.PercentVbus)
+        
+    def _set_talon_position(self, position):
+        self._set_talon_to_position_mode()
+        self.left_talon0.set(position)
+        self.right_talon0.set(position)
     
     def execute(self):
-        self.left_talon0.set(-self.left)
-        self.right_talon0.set(self.right)
+        self.left_talon0.set(self.left * self.drive_multiplier.value)
+        self.right_talon0.set(self.right * self.drive_multiplier.value)
         
         #Reset left and right to 0
         self.left = 0

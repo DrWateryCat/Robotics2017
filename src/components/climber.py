@@ -14,9 +14,18 @@ class Climber(object):
     climber_motor = wpilib.Spark
     def __init__(self):
         self.level = 0
+        self.x = 1
     
     def enable(self):
-        self.level = -0.5
+        self.level = 1
+        
+    def set(self, x):
+        self.x = x
+        
+    def disable(self):
+        self.level = 0
         
     def execute(self):
-        self.climber_motor.set(self.level)
+        self.climber_motor.set(self.level * self.x)
+        
+        self.x = 0

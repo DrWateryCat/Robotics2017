@@ -8,7 +8,7 @@ class UnifiedJoystick(object):
     A class to allow for unified output of buttons from 2+ joysticks
     '''
     
-    def __init__(self, *joysticks):
+    def __init__(self, joysticks):
         self.joysticks = joysticks
         
         
