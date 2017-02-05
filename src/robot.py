@@ -2,9 +2,8 @@
 
 import wpilib
 import magicbot
-from components import drive, climber, ultrasonic
+from components import drive, climber
 from robotpy_ext.common_drivers.navx.ahrs import AHRS
-from robotpy_ext.common_drivers import xl_max_sonar_ez
 from wpilib.smartdashboard import SmartDashboard
 import ctre
 from common import unifiedjoystick, encoder
