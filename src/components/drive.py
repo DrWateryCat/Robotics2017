@@ -49,6 +49,8 @@ class Drive:
         
         self.drive_constant = self.sd.getAutoUpdateValue("Drive/Drive Constant", 0.0001)
         self.drive_multiplier = self.sd.getAutoUpdateValue("Drive/Drive Multiplier", 0.75)
+        
+        self.reversed = False
     
     def tankdrive(self, left, right):
         self.left = left
@@ -72,6 +74,9 @@ class Drive:
             else:
                 self.left = y - x
                 self.right = -max(-y, -x)
+                
+    def reverse(self, val):
+        self.reversed = val
                 
     def get_gyro_angle(self):
         return self.navx.getYaw()
@@ -116,6 +121,7 @@ class Drive:
         SmartDashboard.putNumber("Left Encoder Position", self.left_talon0.getPosition())
         SmartDashboard.putNumber("Right Encoder Position", self.right_talon0.getPosition())
         SmartDashboard.putNumber("heading", self.get_gyro_angle())
+        SmartDashboard.putBoolean("Reversed", self.reversed)
         
     def _set_talon_to_position_mode(self):
         self.left_talon0.changeControlMode(CANTalon.ControlMode.Position)
@@ -131,8 +137,12 @@ class Drive:
         self.right_talon0.set(position)
     
     def execute(self):
-        self.left_talon0.set(self.left * self.drive_multiplier.value)
-        self.right_talon0.set(self.right * self.drive_multiplier.value)
+        if self.reversed:
+            self.left_talon0.set(-self.left * self.drive_multiplier.value)
+            self.right_talon0.set(-self.right * self.drive_multiplier.value)
+        else:
+            self.left_talon0.set(self.left * self.drive_multiplier.value)
+            self.right_talon0.set(self.right * self.drive_multiplier.value)
         
         #Reset left and right to 0
         self.left = 0
