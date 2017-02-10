@@ -88,14 +88,11 @@ class Drive:
         self.left_enc.zero()
         self.right_enc.zero()
                 
-    def drive_distance(self, inches, speed=0.25, initial_call=False):
-        return self.drive_by_ticks(self._get_inches_to_ticks(inches), speed, initial_call)
+    def drive_distance(self, inches, speed=0.25):
+        return self.drive_by_ticks(self._get_inches_to_ticks(inches), speed)
     
-    def drive_by_ticks(self, ticks, speed=0.5, initial_call=False):
-        if initial_call:
-            self.reset_encoders()
-            
-        offset = ticks - self.left_enc.get()
+    def drive_by_ticks(self, ticks, speed=0.5):
+        offset = ticks - self.right_enc.get()
         if abs(offset) > 100:
             self._set_talon_position(ticks)
             return False
@@ -106,7 +103,7 @@ class Drive:
         
         if abs(offset) > 3:
             p = self.turning_P.value * offset
-            value = max(min(p, self.turning_limit.value), -self.turning_limit.value)
+            value = max(min(self.turning_limit.value, p), -self.turning_limit.value)
             self.arcade_drive(value, 0)
             return False
         return True

@@ -17,7 +17,9 @@ class Forward_Five_Feet(StatefulAutonomous):
     
     @state(first=True)
     def forward(self, initial_call):
-        if self.drive.drive_by_ticks(1440, speed=0.25, initial_call=initial_call):
+        if initial_call:
+            self.drive.reset_encoders()
+        if self.drive.drive_by_ticks(1440, speed=0.25):
             self.next_state('end')
     @state
     def end(self):

@@ -22,7 +22,10 @@ class Dead_Reckoning_Gear(StatefulAutonomous):
         self.register_sd_var('turn_right_angle', 45)
         
     @state(first=True)
-    def drive_five_feet(self, state_tm):
+    def drive_five_feet(self, state_tm, initial_call):
+        if initial_call:
+            self.drive.reset_encoders()
+            
         if self.drive.drive_distance(self.drive_forward_inches) or state_tm > 5:
             if self.alliance_location == 1:
                 self.next_state("turn_right")
