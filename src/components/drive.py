@@ -32,6 +32,7 @@ class Drive:
     WHEEL_DIAMETER = 6
     GEAR_RATIO = 10.71
     INCHES_PER_REVOLUTION = 18.84
+    TICKS_PER_INCH = 76.433
     
     def __init__(self):
         self.left = 0
@@ -49,6 +50,8 @@ class Drive:
         
         self.drive_constant = self.sd.getAutoUpdateValue("Drive/Drive Constant", 0.0001)
         self.drive_multiplier = self.sd.getAutoUpdateValue("Drive/Drive Multiplier", 0.75)
+        
+        SmartDashboard.putBoolean("Reversed", False)
         
         self.reversed = False
     
@@ -75,8 +78,8 @@ class Drive:
                 self.left = y - x
                 self.right = -max(-y, -x)
                 
-    def reverse(self, val):
-        self.reversed = val
+    def reverse(self):
+        self.reversed = not self.reversed
                 
     def get_gyro_angle(self):
         return self.navx.getYaw()
@@ -85,17 +88,19 @@ class Drive:
         self.navx.reset()
         
     def reset_encoders(self):
-        self.left_enc.zero()
-        self.right_enc.zero()
+        self.left_talon0.setEncPosition(0)
+        self.right_talon0.setEncPosition(0)
                 
-    def drive_distance(self, inches, speed=0.25):
+    def drive_distance(self, inches, speed=0.1):
         return self.drive_by_ticks(self._get_inches_to_ticks(inches), speed)
     
-    def drive_by_ticks(self, ticks, speed=0.5):
-        offset = ticks - self.right_enc.get()
-        if abs(offset) > 100:
-            self._set_talon_position(ticks)
+    def drive_by_ticks(self, ticks, speed=0.1):
+        offset = self.right_talon0.getEncPosition() - ticks
+        SmartDashboard.putNumber("Offset", offset)
+        if abs(offset) > 300:
+            self.arcade_drive(0, speed)
             return False
+        self.stop()
         return True
     
     def turn_to_angle(self, angle, speed=0.5):
@@ -112,13 +117,13 @@ class Drive:
         return self.navx.getCompassHeading()
     
     def _get_inches_to_ticks(self, inches):
-        return inches * (self.INCHES_PER_REVOLUTION * self.TICKS_PER_REV)
+        return inches * self.TICKS_PER_INCH
     
     def _update_sd(self):
-        SmartDashboard.putNumber("Left Encoder Position", self.left_talon0.getPosition())
-        SmartDashboard.putNumber("Right Encoder Position", self.right_talon0.getPosition())
+        SmartDashboard.putNumber("Left Encoder Position", self.left_talon0.getEncPosition())
+        SmartDashboard.putNumber("Right Encoder Position", self.right_talon0.getEncPosition())
         SmartDashboard.putNumber("heading", self.get_gyro_angle())
-        SmartDashboard.putBoolean("Reversed", self.reversed)
+        self.reversed = SmartDashboard.getBoolean("Reversed", False)
         
     def _set_talon_to_position_mode(self):
         self.left_talon0.changeControlMode(CANTalon.ControlMode.Position)
@@ -132,14 +137,23 @@ class Drive:
         self._set_talon_to_position_mode()
         self.left_talon0.set(position)
         self.right_talon0.set(position)
+        
+    def get_encoder_ticks(self):
+        return self.left_enc.get()
+    
+    def get_distance_since_reset(self):
+        return (self.get_distance_since_reset() / self.TICKS_PER_REV) / self.INCHES_PER_REVOLUTION
+    
+    def stop(self):
+        self.arcade_drive(0, 0)
     
     def execute(self):
-        if self.reversed:
+        if not self.reversed:
             self.left_talon0.set(-self.left * self.drive_multiplier.value)
-            self.right_talon0.set(-self.right * self.drive_multiplier.value)
+            self.right_talon0.set(-self.right * self.drive_multiplier.value * 0.94375)
         else:
             self.left_talon0.set(self.left * self.drive_multiplier.value)
-            self.right_talon0.set(self.right * self.drive_multiplier.value)
+            self.right_talon0.set(self.right * self.drive_multiplier.value * 0.94375)
         
         #Reset left and right to 0
         self.left = 0

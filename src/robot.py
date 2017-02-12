@@ -58,6 +58,11 @@ class MyRobot(magicbot.MagicRobot):
         
         self.buttons = unifiedjoystick.UnifiedJoystick([self.left_joystick, self.right_joystick])
         
+        self.last_button_state = False
+        
+        #SD variables
+        SmartDashboard.putNumber("Vision/Turn", 0)
+        
     def autonomous(self):
         magicbot.MagicRobot.autonomous(self)
         
@@ -68,6 +73,13 @@ class MyRobot(magicbot.MagicRobot):
         if self.climber_joystick.getRawButton(3):
             self.climber.enable()
             self.climber.set(-self.climber_joystick.getRawAxis(1))
+            
+        if self.buttons.getButton(11) and self.last_button_state is False:
+            self.last_button_state = True
+            SmartDashboard.putBoolean("Reversed", not self.drive.reversed)
+            
+        if not self.buttons.getButton(11) and self.last_button_state is True:
+            self.last_button_state = False
         
     def disabledInit(self):
         SmartDashboard.putBoolean("time_running", False)
