@@ -13,7 +13,7 @@ class Vision_Gear(StatefulAutonomous):
     def initialize(self):
         self.register_sd_var('initial_distance', 93, vmin=0, vmax=150)
         self.register_sd_var('turning_time', 3, vmin=1, vmax=5)
-        self.register_sd_var('turning_speed', 0.25)
+        self.register_sd_var('turning_speed', 0.1)
         self.register_sd_var('turn_to_peg_P', 0.005)
         
         self.turnt = False #turnt AF
@@ -22,7 +22,7 @@ class Vision_Gear(StatefulAutonomous):
     def forwards(self, initial_call):
         if initial_call:
             self.drive.reset_encoders()
-        if self.drive.drive_distance(self.initial_distance):
+        if self.drive.drive_distance(self.initial_distance, speed=0.25):
             self.drive.stop()
             self.next_state('turn')
             
@@ -49,7 +49,7 @@ class Vision_Gear(StatefulAutonomous):
                 else:
                     self.next_state('stop')
             else:
-                self.drive.arcade_drive(-(self.turning_speed), 0)
+                self.drive.arcade_drive(self.turning_speed, 0)
     
     @state
     def turn_right(self, state_tm):
@@ -64,7 +64,7 @@ class Vision_Gear(StatefulAutonomous):
                 else:
                     self.next_state('stop')
             else:
-                self.drive.arcade_drive(self.turning_speed, 0)
+                self.drive.arcade_drive(-self.turning_speed, 0)
         
     @timed_state(duration=3, next_state='stop')
     def found_peg(self):

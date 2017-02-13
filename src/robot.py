@@ -62,6 +62,7 @@ class MyRobot(magicbot.MagicRobot):
         
         #SD variables
         SmartDashboard.putNumber("Vision/Turn", 0)
+        SmartDashboard.putBoolean("Reversed", True)
         
     def autonomous(self):
         magicbot.MagicRobot.autonomous(self)

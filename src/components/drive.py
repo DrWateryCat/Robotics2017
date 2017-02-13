@@ -95,9 +95,9 @@ class Drive:
         return self.drive_by_ticks(self._get_inches_to_ticks(inches), speed)
     
     def drive_by_ticks(self, ticks, speed=0.1):
-        offset = self.right_talon0.getEncPosition() - ticks
+        offset = self.left_talon0.getEncPosition() - ticks
         SmartDashboard.putNumber("Offset", offset)
-        if abs(offset) > 300:
+        if abs(offset) > 100:
             self.arcade_drive(0, speed)
             return False
         self.stop()
@@ -148,12 +148,12 @@ class Drive:
         self.arcade_drive(0, 0)
     
     def execute(self):
-        if not self.reversed:
+        if self.reversed:
             self.left_talon0.set(-self.left * self.drive_multiplier.value)
             self.right_talon0.set(-self.right * self.drive_multiplier.value * 0.94375)
         else:
-            self.left_talon0.set(self.left * self.drive_multiplier.value)
-            self.right_talon0.set(self.right * self.drive_multiplier.value * 0.94375)
+            self.left_talon0.set(self.right * self.drive_multiplier.value)
+            self.right_talon0.set(self.left * self.drive_multiplier.value * 0.94375)
         
         #Reset left and right to 0
         self.left = 0
