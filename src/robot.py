@@ -2,16 +2,17 @@
 
 import wpilib
 import magicbot
-from components import drive, climber
+from components import drive, climber, lights
 from robotpy_ext.common_drivers.navx.ahrs import AHRS
 from wpilib.smartdashboard import SmartDashboard
 import ctre
-from common import unifiedjoystick, encoder
+from common import unifiedjoystick, encoder, ledstrip
 from wpilib.driverstation import DriverStation
 
 class MyRobot(magicbot.MagicRobot):
     drive = drive.Drive
     climber = climber.Climber
+    lights = lights.Lights
     
     def createObjects(self):
         #navx
@@ -59,6 +60,9 @@ class MyRobot(magicbot.MagicRobot):
         self.buttons = unifiedjoystick.UnifiedJoystick([self.left_joystick, self.right_joystick])
         
         self.last_button_state = False
+        
+        #Bling
+        self.leds = ledstrip.LEDStrip()
         
         #SD variables
         SmartDashboard.putNumber("Vision/Turn", 0)

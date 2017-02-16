@@ -14,7 +14,7 @@ class LEDStrip(object):
         THEATER_BLUE = 0x06
         THEATER_RAINBOW = 0x07
 
-    def __init__(self, port=wpilib.I2C.Port.kOnboard, strip_length, simPort=0):
+    def __init__(self, port=wpilib.I2C.Port.kOnboard, simPort=0):
         '''
         Constructor
         '''
@@ -29,5 +29,5 @@ class LEDStrip(object):
         #Command 0x06: Theater Chase Blue
         #Command 0x07: Theater Chase Rainbow
         
-    def send_command(self, cmd: self.Command):
+    def send_command(self, cmd):
         self.i2c.write(0x0A, cmd)
