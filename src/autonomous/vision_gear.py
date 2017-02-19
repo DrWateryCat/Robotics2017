@@ -11,20 +11,23 @@ class Vision_Gear(StatefulAutonomous):
     drive = drive.Drive
 
     def initialize(self):
-        self.register_sd_var('initial_distance', 93, vmin=0, vmax=150)
+        self.register_sd_var('initial_distance', 60, vmin=0, vmax=150)
+        self.register_sd_var("forward_time", 3, vmin=1, vmax=5)
         self.register_sd_var('turning_time', 3, vmin=1, vmax=5)
-        self.register_sd_var('turning_speed', 0.1)
+        self.register_sd_var('turning_speed', 0.75)
         self.register_sd_var('turn_to_peg_P', 0.005)
+        self.register_sd_var("wait_to_look", 1, vmin=0, vmax=3)
         
         self.turnt = False #turnt AF
         
     @state(first=True)
-    def forwards(self, initial_call):
+    def forwards(self, initial_call, state_tm):
         if initial_call:
             self.drive.reset_encoders()
-        if self.drive.drive_distance(self.initial_distance, speed=0.25):
+        if self.drive.drive_distance(self.initial_distance, speed=0.25) or state_tm > self.forward_time:
             self.drive.stop()
             self.next_state('turn')
+            
             
     @state
     def turn(self):
@@ -38,9 +41,10 @@ class Vision_Gear(StatefulAutonomous):
             
     @state
     def turn_left(self, state_tm):
-        if SmartDashboard.getBoolean('Vision/Found Hook', False):
-            self.drive.stop()
-            self.next_state('found_peg')
+        if state_tm > self.wait_to_look:
+            if SmartDashboard.getBoolean('Vision/Found Hook', False):
+                self.drive.stop()
+                self.next_state('found_peg')
         else:
             if state_tm > self.turning_time:
                 if not self.turnt:
@@ -49,13 +53,14 @@ class Vision_Gear(StatefulAutonomous):
                 else:
                     self.next_state('stop')
             else:
-                self.drive.arcade_drive(self.turning_speed, 0)
+                self.drive.tankdrive(-self.turning_speed, self.turning_speed)
     
     @state
     def turn_right(self, state_tm):
-        if SmartDashboard.getBoolean('Vision/Found Hook', False):
-            self.drive.stop()
-            self.next_state('found_peg')
+        if state_tm > self.turn_to_look:
+            if SmartDashboard.getBoolean('Vision/Found Hook', False):
+                self.drive.stop()
+                self.next_state('found_peg')
         else:
             if state_tm > self.turning_time:
                 if not self.turnt:
@@ -64,7 +69,7 @@ class Vision_Gear(StatefulAutonomous):
                 else:
                     self.next_state('stop')
             else:
-                self.drive.arcade_drive(-self.turning_speed, 0)
+                self.drive.tankdrive(self.turning_speed, -self.turning_speed)
         
     @timed_state(duration=3, next_state='stop')
     def found_peg(self):

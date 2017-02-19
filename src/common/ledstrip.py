@@ -13,6 +13,8 @@ class LEDStrip(object):
         THEATER_RED = 0x05
         THEATER_BLUE = 0x06
         THEATER_RAINBOW = 0x07
+        MANUAL_RGB = 0x08
+        OFF = 0xFF
 
     def __init__(self, port=wpilib.I2C.Port.kOnboard, simPort=0):
         '''
@@ -31,3 +33,10 @@ class LEDStrip(object):
         
     def send_command(self, cmd):
         self.i2c.write(0x0A, cmd)
+        
+    def send_r(self, r):
+        self.i2c.write(0x0B, r)
+    def send_g(self, g):
+        self.i2c.write(0x0C, g)
+    def send_b(self, b):
+        self.i2c.write(0x0D, b)

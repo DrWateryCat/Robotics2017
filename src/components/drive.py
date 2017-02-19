@@ -78,6 +78,11 @@ class Drive:
                 self.left = y - x
                 self.right = -max(-y, -x)
                 
+    def turn_in_place(self, speed):
+        self._set_talon_to_throttle_mode()
+        
+        self.left = speed
+        self.right = -speed
     def reverse(self):
         self.reversed = not self.reversed
                 
@@ -97,7 +102,7 @@ class Drive:
     def drive_by_ticks(self, ticks, speed=0.1):
         offset = self.left_talon0.getEncPosition() - ticks
         SmartDashboard.putNumber("Offset", offset)
-        if abs(offset) > 100:
+        if abs(offset) > 50:
             self.arcade_drive(0, speed)
             return False
         self.stop()
@@ -150,10 +155,11 @@ class Drive:
     def execute(self):
         if self.reversed:
             self.left_talon0.set(-self.left * self.drive_multiplier.value)
-            self.right_talon0.set(-self.right * self.drive_multiplier.value * 0.94375)
+            self.right_talon0.set(-self.right * self.drive_multiplier.value)
         else:
+            #0.94375
             self.left_talon0.set(self.right * self.drive_multiplier.value)
-            self.right_talon0.set(self.left * self.drive_multiplier.value * 0.94375)
+            self.right_talon0.set(self.left * self.drive_multiplier.value)
         
         #Reset left and right to 0
         self.left = 0

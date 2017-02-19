@@ -17,7 +17,7 @@ class Climber(object):
         self.x = 1
     
     def enable(self):
-        self.level = 1
+        self.level = 0.5
         
     def set(self, x):
         self.x = x

@@ -90,12 +90,10 @@ class MyRobot(magicbot.MagicRobot):
         SmartDashboard.putBoolean("time_running", False)
         self.drive.reset_encoders()
         magicbot.MagicRobot.disabledInit(self)
-
+        
     def update_sd(self):
         SmartDashboard.putBoolean("time_running", True)
         SmartDashboard.putNumber("time_remaining", DriverStation.getInstance().getMatchTime() - 15)
-        
-        
         
 if __name__ == "__main__":
     wpilib.run(MyRobot)
