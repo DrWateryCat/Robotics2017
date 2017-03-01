@@ -16,11 +16,11 @@ class LEDStrip(object):
         MANUAL_RGB = 0x08
         OFF = 0xFF
 
-    def __init__(self, port=wpilib.I2C.Port.kOnboard, simPort=0):
+    def __init__(self, port=wpilib.I2C.Port.kOnboard):
         '''
         Constructor
         '''
-        self.i2c = wpilib.I2C(port, 0x4A, simPort=simPort)
+        self.i2c = wpilib.I2C(port, 0x4A)
         
         #Register 0x0A: command
         #Command 0x01: Red
@@ -33,10 +33,3 @@ class LEDStrip(object):
         
     def send_command(self, cmd):
         self.i2c.write(0x0A, cmd)
-        
-    def send_r(self, r):
-        self.i2c.write(0x0B, r)
-    def send_g(self, g):
-        self.i2c.write(0x0C, g)
-    def send_b(self, b):
-        self.i2c.write(0x0D, b)

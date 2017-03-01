@@ -84,7 +84,7 @@ class Drive:
         self.left = speed
         self.right = -speed
     def reverse(self):
-        self.reversed = not self.reversed
+        SmartDashboard.putBoolean("Reversed", not SmartDashboard.getBoolean("Reversed", False))
                 
     def get_gyro_angle(self):
         return self.navx.getYaw()
@@ -154,12 +154,12 @@ class Drive:
     
     def execute(self):
         if self.reversed:
-            self.left_talon0.set(-self.left * self.drive_multiplier.value)
-            self.right_talon0.set(-self.right * self.drive_multiplier.value)
+            self.left_talon0.set(-self.right * self.drive_multiplier.value)
+            self.right_talon0.set(-self.left * self.drive_multiplier.value)
         else:
             #0.94375
-            self.left_talon0.set(self.right * self.drive_multiplier.value)
-            self.right_talon0.set(self.left * self.drive_multiplier.value)
+            self.left_talon0.set(self.left * self.drive_multiplier.value)
+            self.right_talon0.set(self.right * self.drive_multiplier.value)
         
         #Reset left and right to 0
         self.left = 0

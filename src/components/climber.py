@@ -5,6 +5,8 @@ Created on Jan 19, 2017
 '''
 
 import wpilib
+from magicbot.magic_tunable import tunable
+from wpilib.smartdashboard import SmartDashboard
 
 class Climber(object):
     '''
@@ -17,7 +19,7 @@ class Climber(object):
         self.x = 1
     
     def enable(self):
-        self.level = 0.5
+        self.level = SmartDashboard.getNumber("Climber Multiplier", 0.65)
         
     def set(self, x):
         self.x = x
@@ -26,6 +28,6 @@ class Climber(object):
         self.level = 0
         
     def execute(self):
-        self.climber_motor.set(self.level * self.x)
+        self.climber_motor.set(-abs(self.level * self.x))
         
         self.x = 0

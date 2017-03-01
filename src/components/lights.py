@@ -23,7 +23,6 @@ class Lights:
         self.chooser.addObject("Theater Blue", ledstrip.LEDStrip.Command.THEATER_BLUE)
         self.chooser.addObject("Theater Red", ledstrip.LEDStrip.Command.THEATER_RED)
         self.chooser.addObject("Theater Rainbow", ledstrip.LEDStrip.Command.THEATER_RAINBOW)
-        self.chooser.addObject("Manual", ledstrip.LEDStrip.Command.MANUAL_RGB)
         self.chooser.addObject("Off", ledstrip.LEDStrip.Command.OFF)
         
         SmartDashboard.putData("LEDs", self.chooser)
@@ -39,8 +38,3 @@ class Lights:
         
     def execute(self):
         self.leds.send_command(self.chooser.getSelected())
-        
-        if self.chooser.getSelected() is ledstrip.LEDStrip.Command.MANUAL_RGB:
-            self.leds.send_r(self.r)
-            self.leds.send_g(self.g)
-            self.leds.send_b(self.b)

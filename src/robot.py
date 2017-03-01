@@ -88,6 +88,7 @@ class MyRobot(magicbot.MagicRobot):
         
     def disabledInit(self):
         SmartDashboard.putBoolean("time_running", False)
+        SmartDashboard.putBoolean("run_vision", False)
         self.drive.reset_encoders()
         magicbot.MagicRobot.disabledInit(self)
         
