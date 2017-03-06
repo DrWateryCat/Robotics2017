@@ -78,11 +78,11 @@ class Vision_Gear(StatefulAutonomous):
         if SmartDashboard.getBoolean("Vision/Found Hook", False):
             self.found = True
         
-        if state_tm > self.turn_to_look:
+        if state_tm > self.wait_to_look:
             if SmartDashboard.getBoolean("Vision/Found Hook", False):
                 self.found = True
+            SmartDashboard.putBoolean("run_vision", True)
             if self.found:
-                self.found = True
                 self.drive.stop()
                 self.next_state('found_hook')
             else:
@@ -94,7 +94,7 @@ class Vision_Gear(StatefulAutonomous):
             if state_tm > self.turning_time:
                 if not self.turnt:
                     self.turnt = True
-                    self.next_state('turn_left')
+                    self.next_state('turn_right')
                 else:
                     self.next_state('stop')
             else:

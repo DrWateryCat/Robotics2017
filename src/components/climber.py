@@ -14,12 +14,13 @@ class Climber(object):
     '''
     
     climber_motor = wpilib.Spark
+    climber_2 = wpilib.Talon
     def __init__(self):
         self.level = 0
         self.x = 1
     
     def enable(self):
-        self.level = SmartDashboard.getNumber("Climber Multiplier", 0.65)
+        self.level = SmartDashboard.getNumber("Climber Multiplier", 1)
         
     def set(self, x):
         self.x = x
@@ -28,6 +29,7 @@ class Climber(object):
         self.level = 0
         
     def execute(self):
-        self.climber_motor.set(-abs(self.level * self.x))
+        self.climber_motor.set((self.level * self.x))
+        self.climber_2.set((self.level * self.x))
         
         self.x = 0

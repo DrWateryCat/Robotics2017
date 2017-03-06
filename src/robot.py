@@ -46,6 +46,7 @@ class MyRobot(magicbot.MagicRobot):
         
         #Climber
         self.climber_motor = wpilib.Spark(0)
+        self.climber_2 = wpilib.Talon(1)
         
         #Sensors
         self.left_enc = encoder.Encoder(self.left_talon0)
@@ -71,13 +72,17 @@ class MyRobot(magicbot.MagicRobot):
     def autonomous(self):
         magicbot.MagicRobot.autonomous(self)
         
+    def teleopInit(self):
+        SmartDashboard.putBoolean("time_running", True)
+        SmartDashboard.putNumber("time_remaining", 215)
+        
     def teleopPeriodic(self):
         self.update_sd()
         self.drive.tankdrive(self.left_joystick.getRawAxis(1), self.right_joystick.getRawAxis(1))
         
         if self.climber_joystick.getRawButton(3):
             self.climber.enable()
-            self.climber.set(-self.climber_joystick.getRawAxis(1))
+            self.climber.set(self.climber_joystick.getRawAxis(1))
             
         if self.buttons.getButton(11) and self.last_button_state is False:
             self.last_button_state = True
