@@ -8,6 +8,7 @@ from wpilib.smartdashboard import SmartDashboard
 import ctre
 from common import unifiedjoystick, encoder, ledstrip
 from wpilib.driverstation import DriverStation
+from wpilib.interfaces import PIDSource
 
 class MyRobot(magicbot.MagicRobot):
     drive = drive.Drive
@@ -17,6 +18,7 @@ class MyRobot(magicbot.MagicRobot):
     def createObjects(self):
         #navx
         self.navx = AHRS.create_spi()
+        self.navx.setPIDSourceType(PIDSource.PIDSourceType.kDisplacement)
         
         #Drivetrain
         self.left_talon0 = ctre.CANTalon(0)
@@ -64,6 +66,14 @@ class MyRobot(magicbot.MagicRobot):
         
         #Bling
         self.leds = ledstrip.LEDStrip()
+        
+        #Autonomous Placement
+        self.auto_positions = wpilib.SendableChooser()
+        self.auto_positions.addDefault("Position 1", 1)
+        self.auto_positions.addObject("Position 2", 2)
+        self.auto_positions.addObject("Position 3", 3)
+        
+        SmartDashboard.putData("auto_position", self.auto_positions)
         
         #SD variables
         SmartDashboard.putNumber("Vision/Turn", 0)

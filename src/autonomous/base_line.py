@@ -17,8 +17,8 @@ class Base_Line(StatefulAutonomous):
     
     @timed_state(duration=7, next_state='stop', first=True)
     def forward(self):
-        self.drive.arcade_drive(0, 0.25)
+        self.drive.drive_straight()
         
     @state
     def stop(self):
-        self.drive.arcade_drive(0, 0)
+        self.drive.stop()

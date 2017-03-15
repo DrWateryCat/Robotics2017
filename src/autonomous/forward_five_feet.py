@@ -8,7 +8,7 @@ from robotpy_ext.autonomous import *
 from components import drive
 
 class Forward_Five_Feet(StatefulAutonomous):
-    MODE_NAME = "Forward Five Feet"
+    MODE_NAME = "Robot tests"
     
     drive = drive.Drive
 

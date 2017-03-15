@@ -10,6 +10,10 @@ from common import encoder
 from wpilib.smartdashboard import SmartDashboard
 from networktables import NetworkTable
 from ctre.cantalon import CANTalon
+import wpilib
+from wpilib.interfaces.pidsource import PIDSource
+import hal
+import logging
 
 class Drive:
     '''
@@ -34,19 +38,23 @@ class Drive:
     INCHES_PER_REVOLUTION = 18.84
     TICKS_PER_INCH = 76.433
     
-    def __init__(self):
+    def setup(self):
         self.left = 0
         self.right = 0
-        
-        self.pid_angle = 0
 
         self.sd = NetworkTable.getTable("/SmartDashboard")
         
         #Turn to angle PI values
-        self.turning_P = self.sd.getAutoUpdateValue("TurnToAngle/P", 0.03)
-        #self.turning_I = self.sd.getAutoUpdateValue("TurnToAngle/I", 0.0001)
-        #self.turning_D = self.sd.getAutoUpdateValue("TurnToAngle/D", 0.001)
-        self.turning_limit = self.sd.getAutoUpdateValue("TurnToAngle/Turning Speed", 0.37)
+        self.turning_P = self.sd.getAutoUpdateValue("TurnToAngle/P", 1)
+        self.turning_I = self.sd.getAutoUpdateValue("TurnToAngle/I", 0)
+        self.turning_D = self.sd.getAutoUpdateValue("TurnToAngle/D", 0)
+        
+        self.turn_controller = wpilib.PIDController(Kp=self.turning_P.value, Ki=self.turning_I.value, Kd=self.turning_D.value, source=self, output=self)
+        self.turn_controller.setInputRange(-180, 180)
+        self.turn_controller.setOutputRange(-1, 1)
+        self.turn_controller.setContinuous(True)
+        
+        self.pid_value = 0
         
         self.drive_constant = self.sd.getAutoUpdateValue("Drive/Drive Constant", 0.0001)
         self.drive_multiplier = self.sd.getAutoUpdateValue("Drive/Drive Multiplier", 0.75)
@@ -54,6 +62,8 @@ class Drive:
         SmartDashboard.putBoolean("Reversed", False)
         
         self.reversed = False
+        
+        self.logger = logging.getLogger("drive")
     
     def tankdrive(self, left, right):
         self.left = left
@@ -78,11 +88,21 @@ class Drive:
                 self.left = y - x
                 self.right = -max(-y, -x)
                 
+    def drive_straight(self, speed=0.25):
+        self.turn_controller.enable()
+        #Stay straight
+        self.turn_controller.setSetpoint(0)
+        if not hal.isSimulation():
+            self.arcade_drive(self.pid_value, speed)
+        else:
+            self.arcade_drive(0, speed)
+                
     def turn_in_place(self, speed):
         self._set_talon_to_throttle_mode()
         
         self.left = speed
         self.right = -speed
+        
     def reverse(self):
         SmartDashboard.putBoolean("Reversed", not SmartDashboard.getBoolean("Reversed", False))
                 
@@ -95,12 +115,16 @@ class Drive:
     def reset_encoders(self):
         self.left_talon0.setEncPosition(0)
         self.right_talon0.setEncPosition(0)
+        
+    def reset(self):
+        self.reset_encoders()
+        self.reset_gyro()
                 
-    def drive_distance(self, inches, speed=0.1):
+    def drive_distance(self, inches, speed=0.25):
         return self.drive_by_ticks(self._get_inches_to_ticks(inches), speed)
     
-    def drive_by_ticks(self, ticks, speed=0.1):
-        offset = self.left_talon0.getEncPosition() - ticks
+    def drive_by_ticks(self, ticks, speed=0.25):
+        offset = ticks - self.get_encoder_ticks()
         SmartDashboard.putNumber("Offset", offset)
         if abs(offset) > 50:
             self.arcade_drive(0, speed)
@@ -108,13 +132,15 @@ class Drive:
         self.stop()
         return True
     
-    def turn_to_angle(self, angle, speed=0.5):
+    def turn_to_angle(self, angle, speed=0.25):
         offset = angle - self.get_gyro_angle()
-        
-        if abs(offset) > 3:
-            p = self.turning_P.value * offset
-            value = max(min(self.turning_limit.value, p), -self.turning_limit.value)
-            self.arcade_drive(value, 0)
+        SmartDashboard.putDouble("angle_offset", offset)
+        if abs(offset) > 0.1:
+            if offset > 0:
+                turn_speed = speed
+            else:
+                turn_speed = -speed
+            self.arcade_drive(turn_speed, speed)
             return False
         return True
     
@@ -130,6 +156,8 @@ class Drive:
         SmartDashboard.putNumber("heading", self.get_gyro_angle())
         self.reversed = SmartDashboard.getBoolean("Reversed", False)
         
+        self.turn_controller.setPID(self.turning_P.value, self.turning_I.value, self.turning_D.value, 0)
+        
     def _set_talon_to_position_mode(self):
         self.left_talon0.changeControlMode(CANTalon.ControlMode.Position)
         self.right_talon0.changeControlMode(CANTalon.ControlMode.Position)
@@ -144,7 +172,7 @@ class Drive:
         self.right_talon0.set(position)
         
     def get_encoder_ticks(self):
-        return self.left_enc.get()
+        return self.right_talon0.getPosition()
     
     def get_distance_since_reset(self):
         return (self.get_distance_since_reset() / self.TICKS_PER_REV) / self.INCHES_PER_REVOLUTION
@@ -155,11 +183,19 @@ class Drive:
     def execute(self):
         if self.reversed:
             self.left_talon0.set(-self.right * self.drive_multiplier.value)
-            self.right_talon0.set(-self.left * self.drive_multiplier.value)
+            if hal.isSimulation():
+                self.right_talon0.set(-self.left * self.drive_multiplier.value)
+            else:
+                self.right_talon0.set(-self.left * self.drive_multiplier.value * 0.94375)
+            #self.logger.info("Setting left to " + str(self.right) + " and right to " + str(self.left))
         else:
             #0.94375
             self.left_talon0.set(self.left * self.drive_multiplier.value)
-            self.right_talon0.set(self.right * self.drive_multiplier.value)
+            if hal.isSimulation():
+                self.right_talon0.set(self.right * self.drive_multiplier.value)
+            else:
+                self.right_talon0.set(self.right * self.drive_multiplier.value * 0.94375)
+            #self.logger.info("Setting left to " + str(self.left) + " and right to " + str(self.right))
         
         #Reset left and right to 0
         self.left = 0
@@ -167,3 +203,12 @@ class Drive:
 
         #Update SD
         self._update_sd()
+        
+    def pidGet(self):
+        return self.get_gyro_angle()
+    
+    def getPIDSourceType(self):
+        return PIDSource.PIDSourceType.kDisplacement
+    
+    def pidWrite(self, val):
+        self.pid_value = val
