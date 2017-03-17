@@ -14,7 +14,7 @@ class Climber(object):
     '''
     
     climber_motor = wpilib.Spark
-    climber_2 = wpilib.Talon
+    climber_2 = wpilib.Spark
     def __init__(self):
         self.level = 0
         self.x = 1

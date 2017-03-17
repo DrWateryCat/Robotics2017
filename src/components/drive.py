@@ -76,17 +76,17 @@ class Drive:
         if y > 0.0:
             if x > 0.0:
                 self.left = y - x
-                self.right = max(y, x)
+                self.right = max(y, x) * 0.94375
             else:
                 self.left = max(y, -x)
-                self.right = x + y
+                self.right = x + y  * 0.94375
         else:
             if x > 0.0:
                 self.left = -max(-y, x)
-                self.right = y + x
+                self.right = y + x * 0.94375
             else:
                 self.left = y - x
-                self.right = -max(-y, -x)
+                self.right = -max(-y, -x) * 0.94375
                 
     def drive_straight(self, speed=0.25):
         self.turn_controller.enable()
@@ -186,16 +186,14 @@ class Drive:
             if hal.isSimulation():
                 self.right_talon0.set(-self.left * self.drive_multiplier.value)
             else:
-                self.right_talon0.set(-self.left * self.drive_multiplier.value * 0.94375)
-            #self.logger.info("Setting left to " + str(self.right) + " and right to " + str(self.left))
+                self.right_talon0.set(-self.left * self.drive_multiplier.value)
         else:
             #0.94375
             self.left_talon0.set(self.left * self.drive_multiplier.value)
             if hal.isSimulation():
                 self.right_talon0.set(self.right * self.drive_multiplier.value)
             else:
-                self.right_talon0.set(self.right * self.drive_multiplier.value * 0.94375)
-            #self.logger.info("Setting left to " + str(self.left) + " and right to " + str(self.right))
+                self.right_talon0.set(self.right * self.drive_multiplier.value)
         
         #Reset left and right to 0
         self.left = 0

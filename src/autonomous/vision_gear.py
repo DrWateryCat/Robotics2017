@@ -68,33 +68,6 @@ class Vision_Gear(StatefulAutonomous):
     
     @state
     def turn_right(self, state_tm, initial_call):
-        """
-        if SmartDashboard.getBoolean("Vision/Found Hook", False):
-            self.found = True
-        
-        if state_tm > self.wait_to_look:
-            if SmartDashboard.getBoolean("Vision/Found Hook", False):
-                self.found = True
-            SmartDashboard.putBoolean("run_vision", True)
-            if self.found:
-                self.drive.stop()
-                self.next_state('found_hook')
-            else:
-                self.drive.stop()
-                self.next_state('stop')
-        else:
-            if SmartDashboard.getBoolean("Vision/Found Hook", False):
-                self.found = True
-            if state_tm > self.turning_time:
-                if not self.turnt:
-                    self.turnt = True
-                    self.next_state('turn_right')
-                else:
-                    self.next_state('stop')
-            else:
-                self.drive.tankdrive(-self.turning_speed, self.turning_speed)
-                
-        SmartDashboard.putBoolean("Found", self.found)"""
         if initial_call:
             self.drive.reset_encoders()
         if SmartDashboard.getDouble("angle_offset") < (self.turn_right_angle / 2):

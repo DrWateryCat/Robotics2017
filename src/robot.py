@@ -9,6 +9,7 @@ import ctre
 from common import unifiedjoystick, encoder, ledstrip
 from wpilib.driverstation import DriverStation
 from wpilib.interfaces import PIDSource
+from wpilib.livewindow import LiveWindow
 
 class MyRobot(magicbot.MagicRobot):
     drive = drive.Drive
@@ -48,7 +49,7 @@ class MyRobot(magicbot.MagicRobot):
         
         #Climber
         self.climber_motor = wpilib.Spark(0)
-        self.climber_2 = wpilib.Talon(1)
+        self.climber_2 = wpilib.Spark(1)
         
         #Sensors
         self.left_enc = encoder.Encoder(self.left_talon0)
@@ -79,6 +80,10 @@ class MyRobot(magicbot.MagicRobot):
         SmartDashboard.putNumber("Vision/Turn", 0)
         SmartDashboard.putBoolean("Reversed", True)
         
+        #LiveWindow
+        LiveWindow.addActuator("Drive", "Left Master Talon", self.left_talon0)
+        LiveWindow.addActuator("Drive", "Right Master Talon", self.right_talon0)
+        
     def autonomous(self):
         magicbot.MagicRobot.autonomous(self)
         
@@ -106,6 +111,9 @@ class MyRobot(magicbot.MagicRobot):
         SmartDashboard.putBoolean("run_vision", False)
         self.drive.reset_encoders()
         magicbot.MagicRobot.disabledInit(self)
+        
+    def test(self):
+        pass
         
     def update_sd(self):
         SmartDashboard.putBoolean("time_running", True)
