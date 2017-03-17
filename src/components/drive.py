@@ -64,6 +64,8 @@ class Drive:
         self.reversed = False
         
         self.logger = logging.getLogger("drive")
+        
+        self.iErr = 0
     
     def tankdrive(self, left, right):
         self.left = left
@@ -142,6 +144,28 @@ class Drive:
                 turn_speed = -speed
             self.arcade_drive(turn_speed, speed)
             return False
+        return True
+    
+    def pid_turn_to_angle(self, angle, speed=0.25):
+        offset = angle - self.get_gyro_angle()
+        SmartDashboard.putNumber("angle_offset", offset)
+        if abs(offset) > 2:
+            self.iErr += offset
+            
+            turn = (offset * self.turning_P.value) + (self.turning_I.value * self.iErr)
+            turn = max(min(speed, turn), -speed)
+            
+            if angle < 0:
+                #Negative angle, negative turn
+                turn = abs(turn)
+            else:
+                turn = -abs(turn)
+            
+            SmartDashboard.putNumber('turn_value', turn)
+            self.arcade_drive(turn, 0)
+            return False
+        self.logger.info("Turned to angle " + str(angle))
+        self.iErr = 0
         return True
     
     def get_compass(self):
